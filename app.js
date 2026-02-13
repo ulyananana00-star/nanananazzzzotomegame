@@ -100,3 +100,19 @@ startBtn.addEventListener("click", () => {
 // 預設先顯示第一句（你也可以等 START 才顯示）
 showLine(script[0]);
 
+function fitStage(){
+  const designW = 1080;
+  const designH = 1920;
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const scale = Math.min(vw / designW, vh / designH);
+
+  const stage = document.getElementById("stage");
+  stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+window.addEventListener("resize", fitStage);
+fitStage();
+
