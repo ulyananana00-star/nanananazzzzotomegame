@@ -8,6 +8,7 @@ const textEl = el("text");
 const nextBtn = el("next");
 const choices = el("choices");
 const speakerEl = el("speaker");
+const choiceArrow = el("choiceArrow"); // ✅ 你的 choices 裡要有 <img id="choiceArrow" ...>
 
 // ===== 資源設定 =====
 const outfits = {
@@ -46,13 +47,43 @@ function typeText(str, speed = 28) {
   }, speed);
 }
 
+// ===== 箭頭移動（只在選項旁）=====
+function moveArrowToChoice(btn) {
+  if (!choiceArrow || !btn || !choices) return;
+
+  // choices 是定位容器，所以用 offsetTop 最穩（不怕縮放）
+  const y = btn.offsetTop + (btn.offsetHeight / 2) - (choiceArrow.offsetHeight / 2);
+
+  choiceArrow.style.top = `${y}px`;
+  choiceArrow.style.opacity = "1";
+}
+
+function showChoices() {
+  choices.classList.remove("hidden");
+
+  // ✅ 顯示箭頭並先指向第一個選項
+  if (choiceArrow) {
+    choiceArrow.style.opacity = "1";
+    const first = choices.querySelector(".choice");
+    // 等瀏覽器把 hidden 拿掉後再算位置
+    requestAnimationFrame(() => moveArrowToChoice(first));
+  }
+}
+
+function hideChoices() {
+  choices.classList.add("hidden");
+
+  // ✅ 隱藏箭頭
+  if (choiceArrow) choiceArrow.style.opacity = "0";
+}
+
 function showLine(line) {
   speakerEl.textContent = line.speaker ?? "";
 
   if (line.action === "openChoices") {
-    choices.classList.remove("hidden");
+    showChoices();
   } else {
-    choices.classList.add("hidden");
+    hideChoices();
   }
 
   typeText(line.text ?? "");
@@ -67,7 +98,7 @@ function next() {
     return;
   }
 
-  // 已經最後一句：就停住（你也可以改成回首頁或顯示「END」）
+  // 已經最後一句：就停住
   if (idx >= script.length - 1) return;
 
   idx++;
@@ -76,11 +107,18 @@ function next() {
 
 // ===== 互動 =====
 
-// 點角色：抖動（你的 CSS 要有 .shake 動畫）
+// 點角色：抖動
 character.addEventListener("click", () => {
   character.classList.remove("shake");
-  void character.offsetWidth; // 觸發 reflow 讓動畫可重播
+  void character.offsetWidth;
   character.classList.add("shake");
+});
+
+// ✅ 滑過某個選項：箭頭跟過去
+choices.addEventListener("mouseover", (e) => {
+  const btn = e.target.closest(".choice");
+  if (!btn) return;
+  moveArrowToChoice(btn);
 });
 
 // 點選項：換裝 + 關選單 + 進下一句
@@ -88,12 +126,15 @@ choices.addEventListener("click", (e) => {
   const btn = e.target.closest(".choice");
   if (!btn) return;
 
+  // 點了也讓箭頭對齊一下（可有可無）
+  moveArrowToChoice(btn);
+
   const key = btn.dataset.outfit;
   const src = outfits[key];
   if (!src) return;
 
   character.src = src;
-  choices.classList.add("hidden");
+  hideChoices();
   next();
 });
 
@@ -105,10 +146,11 @@ startBtn.addEventListener("click", () => {
   home.style.display = "none";
   idx = 0;
   character.src = outfits.base;
+  hideChoices();
   showLine(script[idx]);
 });
 
-// 預設顯示第一句（即使還沒按 START 也會顯示；你想要的話也可以註解掉）
+// 預設顯示第一句（你想要等 START 才顯示，就把這行註解掉）
 showLine(script[0]);
 
 // ===== 舞台縮放：只留一套，永遠置中 =====
