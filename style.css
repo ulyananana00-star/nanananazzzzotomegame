@@ -221,6 +221,43 @@ body {
   border: none;
   padding: 10px 16px;
   border-radius: 12px;
+
+:root{
+  --design-w: 1080;
+  --design-h: 1920;
+}
+
+.app{
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background:#000;
+}
+
+/* 固定設計尺寸的舞台 */
+.stage{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--design-w) * 1px);
+  height: calc(var(--design-h) * 1px);
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center center;
+}
+
+/* 舞台內背景填滿舞台 */
+.bg{
+  position:absolute;
+  inset:0;
+  background: url("assets/bg.png") center/cover no-repeat;
+}
+
+/* 像素感 */
+.stage img{
+  image-rendering: pixelated;
+}
+
   font-weight: 800;
   cursor:pointer;
 }
