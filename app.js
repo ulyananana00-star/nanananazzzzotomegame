@@ -8,7 +8,7 @@ const textEl = el("text");
 const nextBtn = el("next");
 const choices = el("choices");
 const speakerEl = el("speaker");
-const choiceArrow = el("choiceArrow"); // ✅ 你的 choices 裡要有 <img id="choiceArrow" ...>
+const choiceArrow = el("choiceArrow"); 
 
 // ===== 資源設定 =====
 const outfits = {
@@ -103,6 +103,8 @@ function next() {
 
   idx++;
   showLine(script[idx]);
+
+  if (!choices.classList.contains("hidden")) return;
 }
 
 // ===== 互動 =====
@@ -150,8 +152,6 @@ startBtn.addEventListener("click", () => {
   showLine(script[idx]);
 });
 
-// 預設顯示第一句（你想要等 START 才顯示，就把這行註解掉）
-showLine(script[0]);
 
 // ===== 舞台縮放：只留一套，永遠置中 =====
 const DESIGN_W = 1080;
