@@ -16,10 +16,10 @@ const outfits = {
 };
 
 const script = [
-  { speaker: "平鎮", text: "……嗨。歡迎回來。" },
-  { speaker: "平鎮", text: "先選一套衣服吧。", action: "openChoices" },
-  { speaker: "平鎮", text: "嗯……就這樣。你喜歡就好。" },
-  { speaker: "平鎮", text: "（點我一下，我會抖一下。）" },
+  { speaker: "平蘋", text: "別誤會，只是因為情人節才……" },
+  { speaker: "平蘋", text: "先選一套衣服吧。", action: "openChoices" },
+  { speaker: "平蘋", text: "想看？那就近些。" },
+  { speaker: "平蘋", text: "別鬧了，小戲伶。" },
 ];
 
 let idx = 0;
