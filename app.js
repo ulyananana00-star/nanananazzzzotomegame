@@ -167,6 +167,8 @@ function fitStage() {
   );
 
   stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  stage.style.transformOrigin = "center center";
+
 }
 
 window.addEventListener("resize", fitStage);
