@@ -1,5 +1,6 @@
 const el = (id) => document.getElementById(id);
 
+// ===== 取得元素 =====
 const home = el("home");
 const startBtn = el("start");
 const character = el("character");
@@ -8,6 +9,7 @@ const nextBtn = el("next");
 const choices = el("choices");
 const speakerEl = el("speaker");
 
+// ===== 資源設定 =====
 const outfits = {
   base: "assets/平原.png",
   red: "assets/平1.png",
@@ -15,6 +17,7 @@ const outfits = {
   leaf: "assets/平三.png",
 };
 
+// 你可以自由改台詞
 const script = [
   { speaker: "平蘋", text: "別誤會，只是因為情人節才……" },
   { speaker: "平蘋", text: "先選一套衣服吧。", action: "openChoices" },
@@ -22,6 +25,7 @@ const script = [
   { speaker: "平蘋", text: "別鬧了，小戲伶。" },
 ];
 
+// ===== 打字機 =====
 let idx = 0;
 let typing = false;
 let typeTimer = null;
@@ -33,7 +37,7 @@ function typeText(str, speed = 28) {
 
   clearInterval(typeTimer);
   typeTimer = setInterval(() => {
-    textEl.textContent += str[i];
+    textEl.textContent += str[i] ?? "";
     i++;
     if (i >= str.length) {
       clearInterval(typeTimer);
@@ -44,49 +48,56 @@ function typeText(str, speed = 28) {
 
 function showLine(line) {
   speakerEl.textContent = line.speaker ?? "";
+
   if (line.action === "openChoices") {
     choices.classList.remove("hidden");
   } else {
     choices.classList.add("hidden");
   }
+
   typeText(line.text ?? "");
 }
 
 function next() {
-  // 正在打字時，按下一句就直接補完
+  // 正在打字：按一下直接補完
   if (typing) {
     clearInterval(typeTimer);
-    textEl.textContent = script[idx].text ?? "";
+    textEl.textContent = script[idx]?.text ?? "";
     typing = false;
     return;
   }
 
+  // 已經最後一句：就停住（你也可以改成回首頁或顯示「END」）
+  if (idx >= script.length - 1) return;
+
   idx++;
-  if (idx >= script.length) idx = script.length - 1;
   showLine(script[idx]);
 }
 
-// 點角色：抖動
+// ===== 互動 =====
+
+// 點角色：抖動（你的 CSS 要有 .shake 動畫）
 character.addEventListener("click", () => {
-  character.classList.remove("shake"); // 讓重複點擊能重播
-  void character.offsetWidth; // reflow
+  character.classList.remove("shake");
+  void character.offsetWidth; // 觸發 reflow 讓動畫可重播
   character.classList.add("shake");
 });
 
-// 選項：換裝 + 關閉選項 + 下一句
+// 點選項：換裝 + 關選單 + 進下一句
 choices.addEventListener("click", (e) => {
   const btn = e.target.closest(".choice");
   if (!btn) return;
 
   const key = btn.dataset.outfit;
-  if (!outfits[key]) return;
+  const src = outfits[key];
+  if (!src) return;
 
-  character.src = outfits[key];
+  character.src = src;
   choices.classList.add("hidden");
-  next(); // 選完直接進下一句
+  next();
 });
 
-// 下一句
+// 下一句按鈕
 nextBtn.addEventListener("click", next);
 
 // 開始
@@ -97,35 +108,24 @@ startBtn.addEventListener("click", () => {
   showLine(script[idx]);
 });
 
-// 預設先顯示第一句（你也可以等 START 才顯示）
+// 預設顯示第一句（即使還沒按 START 也會顯示；你想要的話也可以註解掉）
 showLine(script[0]);
 
-function fitStage(){
-  const designW = 1080;
-  const designH = 1920;
+// ===== 舞台縮放：只留一套，永遠置中 =====
+const DESIGN_W = 1080;
+const DESIGN_H = 1920;
 
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+function fitStage() {
+  const stage = el("stage");
+  if (!stage) return;
 
-  const scale = Math.min(vw / designW, vh / designH);
-
-  const stage = document.getElementById("stage");
-  stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
-}
-function resizeStage(){
-  const stage = document.getElementById("stage");
   const scale = Math.min(
-    window.innerWidth / designW,
-    window.innerHeight / designH
+    window.innerWidth / DESIGN_W,
+    window.innerHeight / DESIGN_H
   );
 
-  stage.style.transform = `scale(${scale})`;
+  stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
-
-window.addEventListener("resize", resizeStage);
-resizeStage();
-
 
 window.addEventListener("resize", fitStage);
 fitStage();
-
