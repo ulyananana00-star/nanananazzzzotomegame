@@ -2,595 +2,71 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>像素 UI 編排（可拖曳圖層 / GitHub Pages）</title>
-  <style>
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      gap:14px;
-      padding:18px;
-      background: radial-gradient(1200px 800px at 50% 15%, #ffd3ea 0%, #f6b4dc 40%, #c9c6ff 100%);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-      color:#fff;
-    }
-
-    .stageWrap{ width:min(430px, 96vw); }
-
-    .stage{
-      width:100%;
-      aspect-ratio: var(--ar, 1170/2532);
-      position:relative;
-      overflow:hidden;
-      border-radius:18px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.25);
-      background:#000;
-      user-select:none;
-      touch-action:none;
-    }
-
-    .stage.edit{
-      background-image:
-        linear-gradient(45deg, rgba(255,255,255,.06) 25%, transparent 25%),
-        linear-gradient(-45deg, rgba(255,255,255,.06) 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, rgba(255,255,255,.06) 75%),
-        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.06) 75%);
-      background-size: 28px 28px;
-      background-position: 0 0, 0 14px, 14px -14px, -14px 0px;
-    }
-
-    .layer{
-      position:absolute;
-      left:0; top:0;
-      transform: translate(var(--x,0px), var(--y,0px)) scale(var(--s,1));
-      transform-origin: top left;
-      cursor: default;
-    }
-
-    .layer img{
-      display:block;
-      width: var(--w, 100px);
-      height:auto;
-      image-rendering: pixelated;
-      pointer-events:none;
-      filter: drop-shadow(0 2px 0 rgba(0,0,0,.25));
-    }
-
-    .stage.edit .layer{ cursor: grab; }
-    .stage.edit .layer.dragging{ cursor: grabbing; }
-
-    .stage.edit .layer.selected::after{
-      content:"";
-      position:absolute;
-      inset:-6px;
-      border:2px dashed rgba(255,255,255,.85);
-      border-radius:10px;
-      box-shadow: 0 0 0 2px rgba(0,0,0,.25) inset;
-      pointer-events:none;
-    }
-
-    /* 文本疊字（放在某些圖層上） */
-    .textOverlay{
-      position:absolute;
-      left:0; top:0;
-      width:100%;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 0 14%;
-      text-align:center;
-      font-weight:800;
-      letter-spacing:.06em;
-      line-height:1.2;
-      color:#ffe3f4;
-      text-shadow: 0 2px 0 rgba(0,0,0,.35);
-      pointer-events: none;
-      font-size: clamp(12px, 2.3vw, 18px);
-    }
-
-    .choiceText{
-      justify-content:flex-start;
-      padding: 0 10% 0 26%;
-      text-align:left;
-      color:#1a1a1a;
-      text-shadow:none;
-      font-weight:900;
-      letter-spacing:.02em;
-      font-size: clamp(12px, 2.3vw, 18px);
-    }
-
-    .nameText{
-      justify-content:center;
-      padding: 0 10% 0 10%;
-      color:#1a1a1a;
-      text-shadow:none;
-      font-weight:900;
-      letter-spacing:.06em;
-      font-size: clamp(12px, 2.2vw, 18px);
-    }
-
-    /* 可編輯文字（僅 edit 模式可點） */
-    .editable{
-      pointer-events:none;
-    }
-    .stage.edit .editable{
-      pointer-events:auto;
-    }
-    .editable[contenteditable="true"]:focus{
-      outline: 3px solid rgba(255,255,255,.9);
-      border-radius:8px;
-      background: rgba(0,0,0,.10);
-    }
-
-    /* 控制面板 */
-    .panel{
-      width:min(430px, 96vw);
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-
-    .pill{
-      padding:8px 12px;
-      border-radius:999px;
-      background: rgba(0,0,0,.28);
-      border: 1px solid rgba(255,255,255,.22);
-      backdrop-filter: blur(6px);
-      font-size:13px;
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-
-    .btn{
-      appearance:none;
-      border:none;
-      cursor:pointer;
-      padding:8px 10px;
-      border-radius:10px;
-      background: rgba(255,255,255,.16);
-      color:#fff;
-      border: 1px solid rgba(255,255,255,.22);
-      font-size:13px;
-    }
-    .btn:hover{ background: rgba(255,255,255,.22); }
-    .btn:active{ transform: translateY(1px); }
-
-    .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-
-    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      padding:2px 6px; border-radius:6px; background: rgba(0,0,0,.28);
-      border:1px solid rgba(255,255,255,.18); font-size:12px; }
-
-    details{
-      width:min(430px, 96vw);
-      background: rgba(0,0,0,.18);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius:14px;
-      padding:10px 12px;
-      backdrop-filter: blur(6px);
-    }
-    details summary{ cursor:pointer; }
-
-    textarea{
-      width:100%;
-      min-height:120px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,.25);
-      background: rgba(0,0,0,.25);
-      color:#fff;
-      padding:10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size:12px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pixel Otome Web</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="stageWrap">
-    <div class="stage" id="stage" aria-label="像素 UI 舞台"></div>
-  </div>
+  <main id="app" class="app">
+    <!-- 背景 -->
+    <div class="bg"></div>
 
-  <div class="panel">
-    <div class="pill" id="status">
-      <span>模式：<b id="mode">互動</b></span>
-      <span>選取：<b id="sel">（無）</b></span>
+    <!-- 上方 UI（可先當裝飾） -->
+    <div class="top-ui">
+      <img class="ui-btn" src="assets/save.png" alt="SAVE" />
+      <img class="ui-btn" src="assets/auto.png" alt="AUTO" />
+      <img class="ui-btn" src="assets/skip.png" alt="SKIP" />
     </div>
 
-    <div class="row">
-      <button class="btn" id="toggleEdit">切換：編排/互動</button>
-      <button class="btn" id="saveLayout">儲存版面</button>
-      <button class="btn" id="loadLayout">讀取版面</button>
-      <button class="btn" id="resetLayout">重置</button>
-    </div>
+    <!-- 場景容器 -->
+    <section class="scene">
+      <!-- 角色圖 -->
+      <img id="character" class="character floaty" src="assets/平原.png" alt="角色" />
 
-    <div class="row">
-      <button class="btn" id="zUp">往前一層</button>
-      <button class="btn" id="zDown">往後一層</button>
-      <button class="btn" id="scaleUp">放大</button>
-      <button class="btn" id="scaleDown">縮小</button>
-    </div>
-  </div>
+      <!-- 選項面板（換裝） -->
+      <div id="choices" class="choices hidden">
+        <img class="choices-panel" src="assets/choices_panel.png" alt="選項面板" />
+        <button class="choice" data-outfit="red">
+          <img src="assets/choice_item_1.png" alt="選項1" />
+          <span>大紅裝</span>
+        </button>
+        <button class="choice" data-outfit="sailor">
+          <img src="assets/choice_item_2.png" alt="選項2" />
+          <span>水手服</span>
+        </button>
+        <button class="choice" data-outfit="leaf">
+          <img src="assets/choice_item_3.png" alt="選項3" />
+          <span>一片葉子</span>
+        </button>
+      </div>
 
-  <details>
-    <summary>匯出 / 匯入 版面 JSON（備份用）</summary>
-    <div style="height:10px"></div>
-    <div class="row">
-      <button class="btn" id="exportJson">匯出到下方</button>
-      <button class="btn" id="importJson">用下方 JSON 匯入</button>
-    </div>
-    <div style="height:10px"></div>
-    <textarea id="jsonBox" placeholder="這裡會出現版面 JSON…"></textarea>
-    <div style="height:10px"></div>
-    <div style="opacity:.92; font-size:13px; line-height:1.5">
-      編排模式快捷鍵：
-      <span class="kbd">拖曳</span> 移動｜
-      <span class="kbd">方向鍵</span> 微調｜
-      <span class="kbd">Shift</span> 加速｜
-      <span class="kbd">[</span>/<span class="kbd">]</span> 縮放｜
-      <span class="kbd">,</span>/<span class="kbd">.</span> 調層級｜
-      <span class="kbd">Esc</span> 取消選取
-    </div>
-  </details>
+      <!-- 對話框 -->
+      <div class="dialog">
+        <img class="dialog-box" src="assets/dialog_box.png" alt="對話框" />
+        <div class="nameplate">
+          <img class="namebg" src="assets/namebg.png" alt="" />
+          <img class="nameapple" src="assets/name-apple.png" alt="" />
+          <span id="speaker">平鎮</span>
+        </div>
 
-  <script>
-    /**
-     * ✅ 你把下面 PNG 放在同一層（repo 根目錄）即可：
-     * bg.png, topbar.png, 8.png(SAVE), 7.png(AUTO),
-     * choices_panel.png, choice_item_1.png, choice_item_2.png, choice_item_3.png,
-     * 9.png(箭頭), dialog_box.png, namebg.png, name-apple.png, skip.png,
-     * pixel-heart-1.png, pixel-heart-2.png, heart.png
-     */
+        <div id="text" class="text"></div>
 
-    const stage = document.getElementById('stage');
-    const modeEl = document.getElementById('mode');
-    const selEl = document.getElementById('sel');
+        <button id="next" class="next">
+          <img src="assets/arrow.png" alt="下一句" />
+        </button>
+      </div>
 
-    const STORAGE_KEY = 'pixel_ui_layout_v1';
+      <!-- 首頁覆蓋層（點一下開始） -->
+      <div id="home" class="home">
+        <div class="home-card">
+          <h1>Pixel Otome</h1>
+          <p>點一下開始</p>
+          <button id="start" class="start-btn">START</button>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    const defaultLayout = {
-      edit: false,
-      layers: [
-        // 背景
-        { id:'bg', src:'bg.png', z: 0, x: 0.00, y: 0.00, w: 1.00, s:1 },
-
-        // 上方血條
-        { id:'topbar', src:'topbar.png', z: 40, x: 0.06, y: 0.015, w: 0.34, s:1 },
-
-        // SAVE / AUTO
-        { id:'save', src:'8.png', z: 41, x: 0.56, y: 0.018, w: 0.20, s:1 },
-        { id:'auto', src:'7.png', z: 42, x: 0.77, y: 0.018, w: 0.20, s:1 },
-
-        // 愛心漂浮（示意）
-        { id:'heartA', src:'pixel-heart-1.png', z: 15, x: 0.80, y: 0.40, w: 0.04, s:1 },
-        { id:'heartB', src:'pixel-heart-2.png', z: 15, x: 0.12, y: 0.62, w: 0.04, s:1 },
-
-        // 右側選項區
-        { id:'choices_panel', src:'choices_panel.png', z: 60, x: 0.56, y: 0.52, w: 0.38, s:1 },
-        { id:'choice1', src:'choice_item_1.png', z: 61, x: 0.58, y: 0.545, w: 0.34, s:1, text:'大紅藥', textClass:'choiceText' },
-        { id:'choice2', src:'choice_item_2.png', z: 61, x: 0.58, y: 0.598, w: 0.34, s:1, text:'水手服', textClass:'choiceText' },
-        { id:'choice3', src:'choice_item_3.png', z: 61, x: 0.58, y: 0.651, w: 0.34, s:1, text:'一片葉子', textClass:'choiceText' },
-
-        // 箭頭
-        { id:'arrow', src:'9.png', z: 62, x: 0.29, y: 0.69, w: 0.17, s:1 },
-
-        // 名牌底 + 蘋果
-        { id:'namebg', src:'namebg.png', z: 55, x: 0.08, y: 0.69, w: 0.28, s:1, text:'平鎮', textClass:'nameText' },
-        { id:'apple', src:'name-apple.png', z: 56, x: 0.055, y: 0.685, w: 0.06, s:1 },
-
-        // 對話框 + SKIP
-        { id:'dialog', src:'dialog_box.png', z: 70, x: 0.05, y: 0.78, w: 0.90, s:1, text:'別誤會了…只是因為情人節才…', textClass:'' },
-        { id:'skip', src:'skip.png', z: 71, x: 0.66, y: 0.86, w: 0.26, s:1 },
-      ]
-    };
-
-    let state = structuredClone(defaultLayout);
-    let selectedId = null;
-
-    // 互動模式：點選選項改對話
-    const lines = {
-      choice1: '你選了「大紅藥」。
-……你這是想補血，還是想補心？',
-      choice2: '你選了「水手服」。
-……欸不是，這要穿去哪？',
-      choice3: '你選了「一片葉子」。
-……好隨便，但又有點浪漫。',
-      skip: '（你跳過了對話）',
-      save: '已存檔（示意）。',
-      auto: '自動播放（示意）。'
-    };
-
-    function setDialog(text){
-      const layer = state.layers.find(l=>l.id==='dialog');
-      if(!layer) return;
-      layer.text = text;
-      render();
-    }
-
-    // 建立 layer DOM
-    function createLayerEl(layer){
-      const el = document.createElement('div');
-      el.className = 'layer';
-      el.dataset.id = layer.id;
-      el.style.zIndex = layer.z;
-
-      const img = document.createElement('img');
-      img.src = layer.src;
-      img.alt = layer.id;
-
-      // 等圖片載入後，才能用自然寬度計算 px 寬
-      img.addEventListener('load', () => {
-        // 背景的原始尺寸用來設定舞台比例
-        if(layer.id === 'bg'){
-          stage.style.setProperty('--ar', `${img.naturalWidth}/${img.naturalHeight}`);
-        }
-        // 用 w(百分比) * stageWidth -> 設定 layer 實際寬(px)
-        applyGeometry(el, layer);
-      });
-
-      el.appendChild(img);
-
-      // 文本疊字
-      if(typeof layer.text === 'string'){
-        const t = document.createElement('div');
-        t.className = 'textOverlay ' + (layer.textClass || '');
-        t.classList.add('editable');
-        t.contentEditable = 'true';
-        t.spellcheck = false;
-        t.innerText = layer.text;
-
-        // 編排模式可改字
-        t.addEventListener('input', () => {
-          layer.text = t.innerText.replace(/
-/g,'');
-        });
-
-        el.appendChild(t);
-      }
-
-      // 點選：編排模式選取 / 互動模式觸發
-      el.addEventListener('pointerdown', (e) => {
-        if(!state.edit){
-          // 互動
-          if(lines[layer.id]) setDialog(lines[layer.id]);
-          return;
-        }
-        // 編排：選取 + 拖曳
-        e.preventDefault();
-        select(layer.id);
-        startDrag(e, layer);
-      });
-
-      return el;
-    }
-
-    function applyGeometry(el, layer){
-      const stageRect = stage.getBoundingClientRect();
-      const xpx = layer.x * stageRect.width;
-      const ypx = layer.y * stageRect.height;
-      const wpx = Math.max(1, layer.w * stageRect.width);
-      el.style.setProperty('--x', `${xpx}px`);
-      el.style.setProperty('--y', `${ypx}px`);
-      el.style.setProperty('--w', `${wpx}px`);
-      el.style.setProperty('--s', layer.s ?? 1);
-    }
-
-    function render(){
-      stage.innerHTML = '';
-      stage.classList.toggle('edit', !!state.edit);
-      modeEl.textContent = state.edit ? '編排' : '互動';
-      selEl.textContent = selectedId ?? '（無）';
-
-      // 依 z 排序
-      const layers = [...state.layers].sort((a,b)=>a.z-b.z);
-      for(const layer of layers){
-        const el = createLayerEl(layer);
-        if(layer.id === selectedId && state.edit) el.classList.add('selected');
-        stage.appendChild(el);
-      }
-
-      // resize 後重新套 geometry
-      requestAnimationFrame(()=>{
-        const map = new Map([...stage.querySelectorAll('.layer')].map(el=>[el.dataset.id, el]));
-        for(const layer of state.layers){
-          const el = map.get(layer.id);
-          if(el) applyGeometry(el, layer);
-        }
-      });
-    }
-
-    // 選取
-    function select(id){
-      selectedId = id;
-      render();
-    }
-
-    // 拖曳
-    let drag = null;
-    function startDrag(e, layer){
-      const el = stage.querySelector(`.layer[data-id="${layer.id}"]`);
-      if(!el) return;
-      el.classList.add('dragging');
-
-      const stageRect = stage.getBoundingClientRect();
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const baseX = layer.x;
-      const baseY = layer.y;
-
-      drag = { layer, el, stageRect, startX, startY, baseX, baseY };
-      stage.setPointerCapture(e.pointerId);
-
-      const onMove = (ev) => {
-        if(!drag) return;
-        const dx = (ev.clientX - drag.startX) / drag.stageRect.width;
-        const dy = (ev.clientY - drag.startY) / drag.stageRect.height;
-        drag.layer.x = clamp01(drag.baseX + dx);
-        drag.layer.y = clamp01(drag.baseY + dy);
-        applyGeometry(drag.el, drag.layer);
-      };
-
-      const onUp = (ev) => {
-        if(!drag) return;
-        drag.el.classList.remove('dragging');
-        stage.releasePointerCapture(ev.pointerId);
-        window.removeEventListener('pointermove', onMove);
-        window.removeEventListener('pointerup', onUp);
-        drag = null;
-        render();
-      };
-
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-    }
-
-    function clamp01(n){ return Math.min(1, Math.max(0, n)); }
-
-    // 調層級
-    function zMove(dir){
-      if(!selectedId) return;
-      const layer = state.layers.find(l=>l.id===selectedId);
-      if(!layer) return;
-      layer.z += dir;
-      render();
-    }
-
-    // 縮放（改 s）
-    function scaleBy(delta){
-      if(!selectedId) return;
-      const layer = state.layers.find(l=>l.id===selectedId);
-      if(!layer) return;
-      layer.s = Math.max(0.2, Math.min(6, (layer.s ?? 1) + delta));
-      render();
-    }
-
-    // 方向鍵微調（改 x/y）
-    function nudge(dx, dy){
-      if(!selectedId) return;
-      const layer = state.layers.find(l=>l.id===selectedId);
-      if(!layer) return;
-      const stageRect = stage.getBoundingClientRect();
-      const stepX = dx / stageRect.width;
-      const stepY = dy / stageRect.height;
-      layer.x = clamp01(layer.x + stepX);
-      layer.y = clamp01(layer.y + stepY);
-      render();
-    }
-
-    // 版面存取
-    function save(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-    function load(){
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return false;
-      try{
-        state = JSON.parse(raw);
-        selectedId = null;
-        return true;
-      }catch{ return false; }
-    }
-
-    // 按鈕事件
-    document.getElementById('toggleEdit').addEventListener('click', () => {
-      state.edit = !state.edit;
-      selectedId = null;
-      render();
-    });
-
-    document.getElementById('saveLayout').addEventListener('click', () => {
-      save();
-      alert('已儲存版面（存在本機瀏覽器 localStorage）。');
-    });
-
-    document.getElementById('loadLayout').addEventListener('click', () => {
-      if(load()){
-        alert('已讀取版面。');
-        render();
-      }else{
-        alert('找不到已儲存版面。');
-      }
-    });
-
-    document.getElementById('resetLayout').addEventListener('click', () => {
-      if(confirm('要重置為預設版面嗎？')){
-        state = structuredClone(defaultLayout);
-        selectedId = null;
-        render();
-      }
-    });
-
-    document.getElementById('zUp').addEventListener('click', () => zMove(+1));
-    document.getElementById('zDown').addEventListener('click', () => zMove(-1));
-    document.getElementById('scaleUp').addEventListener('click', () => scaleBy(+0.1));
-    document.getElementById('scaleDown').addEventListener('click', () => scaleBy(-0.1));
-
-    // 匯出/匯入 JSON
-    const jsonBox = document.getElementById('jsonBox');
-    document.getElementById('exportJson').addEventListener('click', () => {
-      jsonBox.value = JSON.stringify(state, null, 2);
-      jsonBox.focus();
-      jsonBox.select();
-    });
-    document.getElementById('importJson').addEventListener('click', () => {
-      try{
-        const obj = JSON.parse(jsonBox.value);
-        state = obj;
-        selectedId = null;
-        render();
-        alert('已匯入 JSON 版面。');
-      }catch(e){
-        alert('JSON 格式不正確。');
-      }
-    });
-
-    // 快捷鍵
-    window.addEventListener('keydown', (e) => {
-      if(!state.edit) return;
-
-      if(e.key === 'Escape'){
-        selectedId = null;
-        render();
-        return;
-      }
-
-      const accel = e.shiftKey ? 10 : 1;
-
-      if(e.key === 'ArrowLeft') { e.preventDefault(); nudge(-1*accel, 0); }
-      if(e.key === 'ArrowRight'){ e.preventDefault(); nudge(+1*accel, 0); }
-      if(e.key === 'ArrowUp')   { e.preventDefault(); nudge(0, -1*accel); }
-      if(e.key === 'ArrowDown') { e.preventDefault(); nudge(0, +1*accel); }
-
-      if(e.key === '[') { e.preventDefault(); scaleBy(-0.05); }
-      if(e.key === ']') { e.preventDefault(); scaleBy(+0.05); }
-
-      if(e.key === ',') { e.preventDefault(); zMove(-1); }
-      if(e.key === '.') { e.preventDefault(); zMove(+1); }
-    });
-
-    // 點空白取消選取
-    stage.addEventListener('pointerdown', (e) => {
-      if(!state.edit) return;
-      if(e.target === stage){
-        selectedId = null;
-        render();
-      }
-    });
-
-    // 視窗縮放時重算位置
-    window.addEventListener('resize', () => render());
-
-    // 初始：若有存檔就載入
-    if(load()){
-      // 只載版面，不強制 edit
-      state.edit = false;
-    }
-    render();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
