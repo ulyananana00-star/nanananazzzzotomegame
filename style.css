@@ -31,7 +31,6 @@ body {
   gap: 10px;
   justify-content: flex-end;
   z-index: 50;
-  pointer-events: none; /* 先讓它不擋點擊 */
 }
 .ui-btn{
   width: 88px;
@@ -221,7 +220,8 @@ body {
   border: none;
   padding: 10px 16px;
   border-radius: 12px;
-
+  cursor:pointer;
+}
 :root{
   --design-w: 1080;
   --design-h: 1920;
