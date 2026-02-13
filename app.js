@@ -11,10 +11,10 @@ const speakerEl = el("speaker");
 
 // ===== 資源設定 =====
 const outfits = {
-  base: "assets/平原.png",
+  base: "assets/平.png",
   red: "assets/平1.png",
-  sailor: "assets/平2-1.png",
-  leaf: "assets/平三.png",
+  sailor: "assets/平2.png",
+  leaf: "assets/平3.png",
 };
 
 // 你可以自由改台詞
