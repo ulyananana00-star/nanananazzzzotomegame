@@ -112,6 +112,19 @@ function fitStage(){
   const stage = document.getElementById("stage");
   stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
+function resizeStage(){
+  const stage = document.getElementById("stage");
+  const scale = Math.min(
+    window.innerWidth / designW,
+    window.innerHeight / designH
+  );
+
+  stage.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", resizeStage);
+resizeStage();
+
 
 window.addEventListener("resize", fitStage);
 fitStage();
