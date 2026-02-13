@@ -98,5 +98,24 @@ body{
 }
 .floaty{ animation: floaty 3.2s ease-in-out infinite; }
 
-/* 你的 dialog / choices / home 可以先沿用（之後再一起搬進舞台座標系） */
+/* ✅ 選項箭頭：在 choices 容器內絕對定位 */
+.choice-arrow{
+  position: absolute;
+  left: 10px;              /* 你想要箭頭離面板左邊多近 */
+  width: 56px;             /* 依你的素材調 */
+  height: auto;
+  z-index: 60;             /* 比按鈕高，才不會被蓋住 */
+  pointer-events: none;    /* 不要擋到點選 */
+  image-rendering: pixelated;
+
+  /* 漂浮動畫 */
+  animation: choiceFloat 1.2s ease-in-out infinite;
+}
+
+@keyframes choiceFloat{
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
 .hidden{ display:none; }
