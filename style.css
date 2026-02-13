@@ -35,7 +35,7 @@ body{
 .bg{
   position:absolute;
   inset:0;
-  background: url("assets/bg.png") center/cover no-repeat;
+  background: url("material/背景.png") center/cover no-repeat;
 }
 
 /* 像素感 */
@@ -43,15 +43,6 @@ body{
   image-rendering: pixelated;
   user-select:none;
   -webkit-user-drag:none;
-}
-
-/* 所有「做成 1080x1920」的素材：直接 0,0 疊上去 */
-.layer{
-  position:absolute;
-  left:0;
-  top:0;
-  width:1080px;
-  height:1920px;
 }
 
 .ui-save,
@@ -101,12 +92,18 @@ body{
 /* ✅ 選項箭頭：在 choices 容器內絕對定位 */
 .choice-arrow{
   position: absolute;
-  left: 10px;              /* 你想要箭頭離面板左邊多近 */
-  width: 56px;             /* 依你的素材調 */
+  left: 10px;
+  top: 0;              /* ✅ 預設位置 */
+  width: 56px;
   height: auto;
-  z-index: 60;             /* 比按鈕高，才不會被蓋住 */
-  pointer-events: none;    /* 不要擋到點選 */
+  z-index: 60;
+  pointer-events: none;
   image-rendering: pixelated;
+  opacity: 0;          /* ✅ 預設隱藏 */
+
+  animation: choiceFloat 1.2s ease-in-out infinite;
+}
+
 
   /* 漂浮動畫 */
   animation: choiceFloat 1.2s ease-in-out infinite;
