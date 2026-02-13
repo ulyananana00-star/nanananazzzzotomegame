@@ -1,1 +1,226 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  background: #000;
+  overflow: hidden;
+}
 
+.app {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+/* 背景 */
+.bg {
+  position: absolute;
+  inset: 0;
+  background: url("assets/bg.png") center/cover no-repeat;
+  transform: translateZ(0);
+}
+
+/* 上方 UI */
+.top-ui{
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  left: 0; right: 0;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  z-index: 50;
+  pointer-events: none; /* 先讓它不擋點擊 */
+}
+.ui-btn{
+  width: 88px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.15));
+}
+
+/* 場景 */
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 角色 */
+.character{
+  position: absolute;
+  left: 50%;
+  bottom: 110px; /* 讓對話框有空間 */
+  transform: translateX(-50%);
+  max-height: min(78vh, 820px);
+  width: auto;
+  image-rendering: pixelated;
+  z-index: 10;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 6px 0 rgba(0,0,0,.12));
+}
+
+/* 漂浮 */
+@keyframes floaty {
+  0% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-8px); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+.floaty { animation: floaty 3.2s ease-in-out infinite; }
+
+/* 抖動（點角色觸發） */
+@keyframes shake {
+  0% { transform: translateX(-50%) translateY(0); }
+  20% { transform: translateX(calc(-50% - 3px)) translateY(0); }
+  40% { transform: translateX(calc(-50% + 3px)) translateY(0); }
+  60% { transform: translateX(calc(-50% - 2px)) translateY(0); }
+  80% { transform: translateX(calc(-50% + 2px)) translateY(0); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+.shake { animation: shake .35s ease; }
+
+/* 對話框 */
+.dialog{
+  position: absolute;
+  left: 50%;
+  bottom: env(safe-area-inset-bottom, 0px);
+  transform: translateX(-50%);
+  width: min(92vw, 520px);
+  height: 190px;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+}
+.dialog-box{
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 0 rgba(0,0,0,.12));
+}
+.text{
+  position: absolute;
+  left: 28px;
+  right: 60px;
+  bottom: 40px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0,0,0,.25);
+  letter-spacing: .5px;
+}
+
+/* 名牌 */
+.nameplate{
+  position: absolute;
+  left: 16px;
+  top: -22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.namebg{
+  position: absolute;
+  left: 0;
+  width: 140px;
+  image-rendering: pixelated;
+}
+.nameapple{
+  width: 26px;
+  image-rendering: pixelated;
+  z-index: 2;
+}
+#speaker{
+  z-index: 2;
+  padding-left: 34px;
+  font-size: 18px;
+  color: #222;
+  font-weight: 700;
+}
+
+/* 下一句按鈕 */
+.next{
+  position: absolute;
+  right: 10px;
+  bottom: 38px;
+  width: 64px;
+  height: 48px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.next img{
+  width: 100%;
+  image-rendering: pixelated;
+}
+
+/* 選項 */
+.choices{
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(88vw, 420px);
+  z-index: 40;
+}
+.choices-panel{
+  width: 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 0 rgba(0,0,0,.12));
+}
+.choice{
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  height: 48px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.choice img{ width: 100%; height: auto; image-rendering: pixelated; }
+.choice span{
+  position: absolute;
+  left: 60px;
+  color: #222;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+
+/* 三個按鈕定位（對齊你的 panel） */
+.choice:nth-of-type(1){ top: 14px; }
+.choice:nth-of-type(2){ top: 66px; }
+.choice:nth-of-type(3){ top: 118px; }
+
+.hidden{ display:none; }
+
+/* 首頁覆蓋 */
+.home{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index: 60;
+  background: rgba(0,0,0,.25);
+  backdrop-filter: blur(2px);
+}
+.home-card{
+  width: min(86vw, 360px);
+  padding: 18px 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 18px 40px rgba(0,0,0,.25);
+  text-align: center;
+}
+.home-card h1{ margin: 0 0 8px; }
+.home-card p{ margin: 0 0 12px; }
+.start-btn{
+  border: none;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor:pointer;
+}
